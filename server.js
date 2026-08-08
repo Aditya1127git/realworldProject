@@ -1,8 +1,8 @@
+require("dotenv").config();
 
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
-
 
 const app = express();
 const port = process.env.PORT || 5000;
@@ -12,110 +12,65 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(__dirname));
 
+// =========================
+// MongoDB Connection
+// =========================
 
-mongoose.connect("mongodb+srv://vrindavanuniversity_db_user:h43QWMUT4GOPqD7J@cluster0.jtprnn5.mongodb.net/vtu?retryWrites=true&w=majority&appName=Cluster0")
+mongoose.connect(process.env.MONGO_URI)
     .then(function () {
         console.log("MongoDB Connected");
     })
     .catch(function (err) {
-        console.log(err);
+        console.error("MongoDB Connection Error:", err.message);
     });
 
+// =========================
+// Student Schema
+// =========================
 
 const studentSchema = new mongoose.Schema({
     studentId: String,
+
     name: String,
+
     registration: String,
+
     course: String,
 
     rollNumber: String,
+
+    qualification: String,
+
     enrollmentNumber: String,
+
+    validationPeriod: String,
+
     academicSession: String,
 
     specialization: String,
+
     status: String,
 
+    email: String,
 
+    phone: String
 });
 
 const Student = mongoose.model("Student", studentSchema);
 
-
-const student2 = new Student({
-    studentId: "103840",
-    name: "Rahul Kumar",
-    registration: "VTU002",
-    course: "Bachelor of Technology",
-    specialization: "Computer Science",
-    dualSpecialization: "NA",
-    status: "RESULT PASS",
-    email: "rahul@gmail.com",
-    phone: "9876543210"
-});
-
-const student3 = new Student({
-    name: "Akash Rajput",
-    registration: "VTU003",
-    course: "Btech in Computer Science",
-    email: "aakashrajp223@gmail.com",
-    phone: "7874333929"
-});
-
-const student4 = new Student({
-    name: "Sidharth sahoo",
-    registration: "VTU004",
-    course: "Btech in Computer Science",
-    email: "sidhujajf223@gmail.com",
-    phone: "5576738829"
-});
-
-const student5 = new Student({
-    name: "aryan paul",
-    registration: "VTU005",
-    course: "Btech in Computer Science",
-    email: "aryanpau@gmail.com",
-    phone: "9079594934"
-});
-
-// Student.insertMany([
-//     student1,
-//     student2,
-//     student3,
-//     student4,
-//     student5
-// ])
-// .then(function () {
-//     console.log("All Students Saved");
-// })
-// .catch(function (err) {
-//     console.log(err);
-// });
+// =========================
+// Get All Students
+// =========================
 
 app.get("/students", function (req, res) {
+
     Student.find({})
         .then(function (data) {
-            res.send(data);
-        });
-});
-
-app.get("/student/:registration", function (req, res) {
-
-    Student.findOne({
-        registration: req.params.registration
-    })
-        .then(function (student) {
-
-            if (student) {
-                res.json(student);
-            } else {
-                res.status(404).json({
-                    message: "Student Not Found"
-                });
-            }
-
+            res.json(data);
         })
         .catch(function (err) {
             console.log(err);
+
             res.status(500).json({
                 message: "Server Error"
             });
@@ -123,10 +78,86 @@ app.get("/student/:registration", function (req, res) {
 
 });
 
-app.post("/apply", function (req, res) {
+// =========================
+// Student Verification
+// Search by:
+// 1. Registration Number
+// 2. Enrollment Number
+// 3. Roll Number
+// =========================
+
+app.get("/student/:verificationNumber", function (req, res) {
+
+    const verificationNumber =
+        req.params.verificationNumber.trim();
 
     Student.findOne({
-       registration: req.body.enrollment
+        $or: [
+            {
+                registration: verificationNumber
+            },
+            {
+                enrollmentNumber: verificationNumber
+            },
+            {
+                rollNumber: verificationNumber
+            }
+        ]
+    })
+        .select({
+            rollNumber: 1,
+            name: 1,
+            course: 1,
+            qualification: 1,
+            status: 1,
+            enrollmentNumber: 1,
+            validationPeriod: 1,
+            _id: 0
+        })
+        .then(function (student) {
+
+            if (student) {
+
+                res.json(student);
+
+            } else {
+
+                res.status(404).json({
+                    message: "Student Not Found"
+                });
+
+            }
+
+        })
+        .catch(function (err) {
+
+            console.log(err);
+
+            res.status(500).json({
+                message: "Server Error"
+            });
+
+        });
+
+});
+
+// =========================
+// Apply / Register Student
+// =========================
+
+app.post("/apply", function (req, res) {
+
+    const enrollmentNumber = req.body.enrollment;
+
+    Student.findOne({
+        $or: [
+            {
+                registration: enrollmentNumber
+            },
+            {
+                enrollmentNumber: enrollmentNumber
+            }
+        ]
     })
         .then(function (existingStudent) {
 
@@ -140,20 +171,42 @@ app.post("/apply", function (req, res) {
 
             const student = new Student({
 
-                
+                studentId:
+                    "VTU" +
+                    Math.floor(
+                        1000 + Math.random() * 9000
+                    ),
+
+                name: req.body.name,
+
+                registration: enrollmentNumber,
+
+                enrollmentNumber: enrollmentNumber,
+
                 rollNumber: req.body.rollNumber,
 
-                studentId: "VTU" + Math.floor(1000 + Math.random() * 9000),
-
-                enrollmentNumber: req.body.enrollment,
-
-                academicSession: req.body.academicSession,
-                name: req.body.name,
-                registration: req.body.enrollment,
                 course: req.body.course,
 
-                specialization: "Computer Science",
-                status: "RESULT PASS",
+                qualification:
+                    req.body.qualification || "",
+
+                validationPeriod:
+                    req.body.validationPeriod || "",
+
+                academicSession:
+                    req.body.academicSession || "",
+
+                specialization:
+                    req.body.specialization || "Computer Science",
+
+                status:
+                    req.body.status || "RESULT PASS",
+
+                email:
+                    req.body.email || "",
+
+                phone:
+                    req.body.phone || ""
 
             });
 
@@ -165,18 +218,43 @@ app.post("/apply", function (req, res) {
                 })
                 .catch(function (err) {
 
+                    console.log(err);
+
                     res.status(500).send(err);
 
                 });
+
+        })
+        .catch(function (err) {
+
+            console.log(err);
+
+            res.status(500).json({
+                message: "Server Error"
+            });
 
         });
 
 });
 
+// =========================
+// Home
+// =========================
+
 app.get("/", function (req, res) {
+
     res.send("Welcome to VTU backend");
+
 });
 
+// =========================
+// Start Server
+// =========================
+
 app.listen(port, function () {
-    console.log("Server Started.....");
+
+    console.log(
+        `Server Started on port ${port}`
+    );
+
 });

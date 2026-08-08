@@ -4,8 +4,10 @@ const result = document.querySelector("#result");
 
 async function searchStudent() {
 
-    const registrationNumber = registration.value;
-    const response = await fetch(`https://realworldproject-production.up.railway.app/student/${registrationNumber}`);
+    const registrationNumber = registration.value.trim();
+    const response = await fetch(
+    `http://localhost:5000/student/${registrationNumber}`
+);
     
     if (!response.ok) {
         result.innerHTML = `
@@ -19,66 +21,48 @@ async function searchStudent() {
     const data = await response.json();
 
     result.innerHTML = `
-<div class="card shadow mx-auto mt-5" style="max-width:1200px; width:95%;">
+        <div class="card shadow mx-auto mt-5" style="max-width:720px;">
+            <div class="card-body p-5">
+                <h3 class="mb-4">Student Details</h3>
+                <hr>
 
-    <div class="card-body p-4">
+                <div class="row mb-3">
+                    <div class="col-5 fw-semibold">Roll Number</div>
+                    <div class="col-7">${data.rollNumber || ""}</div>
+                </div>
 
-        <h3 class="mb-4 fw-bold">Student Details</h3>
+                <div class="row mb-3">
+                    <div class="col-5 fw-semibold">Student Name</div>
+                    <div class="col-7">${data.name || ""}</div>
+                </div>
 
-       <div class="card shadow-sm mx-auto mt-5" style="max-width:720px;">
-    <div class="card-body p-5">
+                <div class="row mb-3">
+                    <div class="col-5 fw-semibold">Course</div>
+                    <div class="col-7">${data.course || ""}</div>
+                </div>
 
-        <h3 class="mb-4">Student Details</h3>
-        <hr>
+                <div class="row mb-3">
+                    <div class="col-5 fw-semibold">Qualification</div>
+                    <div class="col-7">${data.qualification || ""}</div>
+                </div>
 
-        <div class="row mb-3">
-    <div class="col-5 fw-semibold">Roll Number</div>
-    <div class="col-7">${data.rollNumber}</div>
-</div>
+                <div class="row mb-3">
+                    <div class="col-5 fw-semibold">Status</div>
+                    <div class="col-7 text-success fw-bold">${data.status || ""}</div>
+                </div>
 
-        <div class="row mb-3">
-            <div class="col-5 fw-semibold">Student ID</div>
-            <div class="col-7">${data.studentId}</div>
+                <div class="row mb-3">
+                    <div class="col-5 fw-semibold">Enrollment Number</div>
+                    <div class="col-7">${data.enrollmentNumber || ""}</div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-5 fw-semibold">Validation Period</div>
+                    <div class="col-7">${data.validationPeriod || ""}</div>
+                </div>
+            </div>
         </div>
-
-        <div class="row mb-3">
-            <div class="col-5 fw-semibold">Student Name</div>
-            <div class="col-7">${data.name}</div>
-        </div>
-
-        <div class="row mb-3">
-            <div class="col-5 fw-semibold">Course</div>
-            <div class="col-7">${data.course}</div>
-        </div>
-
-        <div class="row mb-3">
-            <div class="col-5 fw-semibold">Specialization</div>
-            <div class="col-7">${data.specialization}</div>
-        </div>
-
-        <div class="row mb-3">
-            <div class="col-5 fw-semibold">Status</div>
-            <div class="col-7 text-success fw-bold">${data.status}</div>
-        </div>
-
-    <div class="row mb-3">
-    <div class="col-5 fw-semibold">Enrollment Number</div>
-    <div class="col-7">${data.enrollmentNumber}</div>
-</div>
-
-        <div class="row mb-3">
-    <div class="col-5 fw-semibold">Academic Session</div>
-    <div class="col-7">${data.academicSession}</div>
-</div>
-
-
-    </div>
-</div>
-
-    </div>
-
-</div>
-`;
+    `;
 }
 
 searchBtn.addEventListener("click", searchStudent);
