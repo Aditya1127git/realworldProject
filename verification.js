@@ -6,7 +6,7 @@ async function searchStudent() {
 
     const registrationNumber = registration.value.trim();
     const response = await fetch(
-    `http://localhost:5000/student/${registrationNumber}`
+    `/student/${registrationNumber}`
 );
     
     if (!response.ok) {
